@@ -10,6 +10,8 @@ import UIKit
 import SnapKit
 
 public typealias CXPopupHandler = (Any?) -> Void
+public typealias CXPopupLifeCycleAction = () -> Void
+
 public final class Popupable<Base> {
     public let base: Base
 
@@ -57,24 +59,26 @@ public final class Popupable<Base> {
         }
     }
     
-    public func show(at presenter: UIViewController?, appearance: CXAppearance = CXAppearance(), positive: CXPopupHandler? = nil, negative: CXPopupHandler? = nil) {
+    public func show(at presenter: UIViewController?, appearance: CXAppearance = CXAppearance(), positive: CXPopupHandler? = nil, negative: CXPopupHandler? = nil, viewDidLoad: CXPopupLifeCycleAction? = nil, viewDidDisappear: CXPopupLifeCycleAction? = nil) {
         guard let mContent = base as? UIView else {
             return
         }
         
         let popupWindow = PopupWindow()
         let presentationController = CXPresentationController(presentedViewController: popupWindow, presenting: presenter)
-        presentationController.appearance = appearance
         popupWindow.transitioningDelegate = presentationController
-        
         popupWindow.content = mContent
-        popupWindow.appearance = appearance
         popupWindow.positiveAction = positive
         popupWindow.negativeAction = negative
+        popupWindow.viewDidLoadAction = viewDidLoad
+        popupWindow.viewDidDisappearAction = viewDidDisappear
+        
+        popupWindow.appearance = appearance
+        presentationController.appearance = appearance
+        
         presenter?.present(popupWindow, animated: true, completion: nil)
     }
 }
-
 
 public protocol PopupableCompatible {
     associatedtype CompatibleType

@@ -19,6 +19,8 @@ public final class PopupWindow: UIViewController {
         return appearance.orientation.preferredInterfaceOrientationForPresentation
     }
 
+    var viewDidLoadAction: CXPopupLifeCycleAction?
+    var viewDidDisappearAction: CXPopupLifeCycleAction?
     var negativeAction: CXPopupHandler?
     var positiveAction: CXPopupHandler?
     var appearance: CXAppearance!
@@ -28,6 +30,12 @@ public final class PopupWindow: UIViewController {
     public override func viewDidLoad() {
         super.viewDidLoad()
         setupLayout()
+        viewDidLoadAction?()
+    }
+    
+    public override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        viewDidDisappearAction?()
     }
 
     deinit {
