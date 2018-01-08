@@ -23,12 +23,16 @@ public struct CXAppearance {
     public struct Window {
         public var width: WindowSize = .equalToParent
         public var height: WindowSize = .equalToParent
-        public var margin: UIEdgeInsets = .zero
         public var position: WindowPosition = .center
-        public var isSafeAreaEnabled: Bool = true
+        public var backgroundColor: UIColor = .clear
+        public var cornerRadius: CGFloat = 16.0
+
         public var allowTouchOutsideToDismiss = true
         public var maskBackgroundColor: UIColor = .black
         public var maskBackgroundAlpha: CGFloat = 0.3
+
+        public var isSafeAreaEnabled: Bool = true
+        public var shouldFillOutSafeArea: Bool = false
     }
 
     public struct Orientation {
