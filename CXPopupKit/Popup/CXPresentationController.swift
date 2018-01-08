@@ -15,11 +15,11 @@ final class CXPresentationController: UIPresentationController, UIViewController
 
     override var frameOfPresentedViewInContainerView: CGRect {
         let frame = LayoutUtil.presentedViewSize(in: containerView!,
-                width: appearance.window.width,
-                height: appearance.window.height,
-                attached: appearance.window.position,
-                insets: appearance.window.margin,
-                isFollowingSafeAreaGuide: appearance.window.isSafeAreaEnabled)
+                                                 width: appearance.window.width,
+                                                 height: appearance.window.height,
+                                                 attached: appearance.window.position,
+                                                 isFollowingSafeAreaGuide: appearance.window.isSafeAreaEnabled,
+                                                 shouldFillOutSafeArea: appearance.window.shouldFillOutSafeArea)
         return frame
     }
 

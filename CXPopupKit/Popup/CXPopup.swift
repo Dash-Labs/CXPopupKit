@@ -72,7 +72,7 @@ public final class Popupable<Base> {
         popupWindow.negativeAction = negative
         popupWindow.viewDidLoadAction = viewDidLoad
         popupWindow.viewDidDisappearAction = viewDidDisappear
-        
+
         popupWindow.appearance = appearance
         presentationController.appearance = appearance
         
@@ -92,4 +92,7 @@ public extension PopupableCompatible {
 }
 
 extension UIView: PopupableCompatible {
+    public var appearance: CXAppearance {
+        return CXAppearance()
+    }
 }

@@ -9,9 +9,9 @@ import SnapKit
 class LayoutUtil {
     static func getEstimateHeight(for string: NSString, with width: CGFloat, and font: UIFont) -> CGFloat {
         return string.boundingRect(with: CGSize(width: Double(width), height: Double.greatestFiniteMagnitude),
-                options: NSStringDrawingOptions.usesLineFragmentOrigin,
-                attributes: [NSAttributedStringKey.font: font],
-                context: nil)
+                                   options: NSStringDrawingOptions.usesLineFragmentOrigin,
+                                   attributes: [NSAttributedStringKey.font: font],
+                                   context: nil)
                 .size.height
     }
 
@@ -22,29 +22,70 @@ class LayoutUtil {
         }
     }
 
-    static func presentedViewSize(`in` containerView: UIView, width: CXAppearance.WindowSize, height: CXAppearance.WindowSize, attached: CXAppearance.WindowPosition, insets: UIEdgeInsets, isFollowingSafeAreaGuide: Bool) -> CGRect {
+    static func presentedViewSize(`in` containerView: UIView, width: CXAppearance.WindowSize, height: CXAppearance.WindowSize, attached: CXAppearance.WindowPosition, isFollowingSafeAreaGuide: Bool, shouldFillOutSafeArea: Bool) -> CGRect {
+        let shouldFollowingSafeAreaGuide: Bool
+
+        if isFollowingSafeAreaGuide {
+            shouldFollowingSafeAreaGuide = shouldFillOutSafeArea ? false : isFollowingSafeAreaGuide
+        } else {
+            shouldFollowingSafeAreaGuide = false
+        }
+
         var result = CGRect.zero
+        let targetInsets = convertWithSafeArea(isFollowingSafeAreaGuide: shouldFollowingSafeAreaGuide, at: containerView)
 
-        let targetInsets = convertWithSafeArea(insets: insets, isFollowingSafeAreaGuide: isFollowingSafeAreaGuide, at: containerView)
+        let maximumWidth = containerView.bounds.width - targetInsets.left - targetInsets.right
+        let maximumHeight = containerView.bounds.height - targetInsets.top - targetInsets.bottom
 
-        let targetWidth = getWindowSize(size: width, for: containerView.bounds.width)
+        let wo = getWidthOffset(shouldFillOutSafeArea, targetInsets, at: attached)
+        let calculatedWidth = getWindowSize(size: width, for: containerView.bounds.width) + wo
+        let targetWidth = calculatedWidth > maximumWidth ? maximumWidth : calculatedWidth
         let targetX = getWindowPositionX(position: attached, containerWidth: containerView.bounds.width, targetWidth: targetWidth, insetsLeft: targetInsets.left, insetsRight: targetInsets.right)
 
-        let targetHeight = getWindowSize(size: height, for: containerView.bounds.height)
+        let ho = getWidthOffset(shouldFillOutSafeArea, targetInsets, at: attached)
+        let calculatedHeight = getWindowSize(size: height, for: containerView.bounds.height) + ho
+        let targetHeight = calculatedHeight > maximumHeight ? maximumHeight : calculatedHeight
         let targetY = getWindowPositionY(position: attached, containerHeight: containerView.bounds.height, targetHeight: targetHeight, insetTop: targetInsets.top, insetsBottom: targetInsets.bottom)
-
 
         result.origin = CGPoint(x: targetX, y: targetY)
         result.size = CGSize(width: targetWidth, height: targetHeight)
         return result
     }
 
-    private static func convertWithSafeArea(insets: UIEdgeInsets, isFollowingSafeAreaGuide: Bool, at containerView: UIView) -> UIEdgeInsets {
-        if #available(iOS 11.0, *), isFollowingSafeAreaGuide {
-            let safeArea = containerView.safeAreaInsets
-            return UIEdgeInsets(top: insets.top + safeArea.top, left: insets.left + safeArea.left, bottom: insets.bottom + safeArea.bottom, right: insets.right + safeArea.right)
+    static func getWidthOffset(_ shouldFillOutSafeArea: Bool, _ insets: UIEdgeInsets, at position: CXAppearance.WindowPosition) -> CGFloat {
+        guard shouldFillOutSafeArea else {
+            return 0
         }
-        return insets
+
+        switch position {
+            case .left:
+                return insets.left
+            case .right:
+                return insets.right
+            default:
+                return 0
+        }
+    }
+
+    static func getHeightOffset(_ shouldFillOutSafeArea: Bool, _ insets: UIEdgeInsets, at position: CXAppearance.WindowPosition) -> CGFloat {
+        guard shouldFillOutSafeArea else {
+            return 0
+        }
+        switch position {
+            case .top:
+                return insets.top
+            case .bottom:
+                return insets.bottom
+            default:
+                return 0
+        }
+    }
+
+    static func convertWithSafeArea(isFollowingSafeAreaGuide: Bool, at containerView: UIView?) -> UIEdgeInsets {
+        if #available(iOS 11.0, *), isFollowingSafeAreaGuide {
+            return containerView?.safeAreaInsets ?? .zero
+        }
+        return .zero
     }
 
     // X = L + x + R
@@ -82,76 +123,45 @@ class LayoutUtil {
             case .fixValue:
                 return size.adjustedValue
         }
-        
+
     }
 
 
-    static func install(view child: UIView, at parent: UIView, width: CXAppearance.WindowSize, height: CXAppearance.WindowSize, attached: CXAppearance.WindowPosition, insets: UIEdgeInsets, isFollowingSafeAreaGuide: Bool) {
+    static func install(view child: UIView, at parent: UIView, attached: CXAppearance.WindowPosition, insets: UIEdgeInsets, isFollowingSafeAreaGuide: Bool) {
         parent.addSubview(child)
 
         child.snp.makeConstraints { maker in
-
-            switch width {
-                case .equalToParent:
-                    maker.width.equalTo(parent)
-                case .partOfParent:
-                    maker.width.equalTo(parent).multipliedBy(width.adjustedValue)
-                case .fixValue:
-                    maker.width.equalTo(width.adjustedValue)
-            }
-
-            switch height {
-                case .equalToParent:
-                    maker.height.equalTo(parent)
-                case .partOfParent:
-                    maker.height.equalTo(parent).multipliedBy(height.adjustedValue)
-                case .fixValue:
-                    maker.height.equalTo(height.adjustedValue)
-            }
-
             switch attached {
-                case .center:
-                    maker.center.equalTo(parent)
                 case .left:
-                    maker.centerY.equalTo(parent)
+                    maker.top.bottom.trailing.equalTo(parent)
                     if #available(iOS 11.0, *), isFollowingSafeAreaGuide {
                         maker.leading.equalTo(parent.safeAreaLayoutGuide.snp.leading).offset(insets.left)
                     } else {
                         maker.leading.equalTo(parent).offset(insets.left)
                     }
                 case .right:
-                    maker.centerY.equalTo(parent)
+                    maker.top.bottom.leading.equalTo(parent)
                     if #available(iOS 11.0, *), isFollowingSafeAreaGuide {
                         maker.trailing.equalTo(parent.safeAreaLayoutGuide.snp.trailing).offset(insets.left)
                     } else {
                         maker.trailing.equalTo(parent).offset(-insets.right)
                     }
                 case .top:
-                    maker.centerX.equalTo(parent)
+                    maker.bottom.leading.trailing.equalTo(parent)
                     if #available(iOS 11.0, *), isFollowingSafeAreaGuide {
                         maker.top.equalTo(parent.safeAreaLayoutGuide.snp.top).offset(-insets.right)
                     } else {
-                        maker.top.equalTo(parent).offset(insets.top).offset(-insets.right)
+                        maker.top.equalTo(parent).offset(insets.top)
                     }
                 case .bottom:
-                    maker.centerX.equalTo(parent)
+                    maker.top.leading.trailing.equalTo(parent)
                     if #available(iOS 11.0, *), isFollowingSafeAreaGuide {
                         maker.bottom.equalTo(parent.safeAreaLayoutGuide.snp.bottom).offset(-insets.bottom)
                     } else {
                         maker.bottom.equalTo(parent).offset(-insets.bottom)
                     }
-                case let .custom(x, y):
-                    if #available(iOS 11.0, *), isFollowingSafeAreaGuide {
-                        maker.leading.equalTo(parent.safeAreaLayoutGuide.snp.leading).offset(x)
-                    } else {
-                        maker.leading.equalTo(parent).offset(x)
-                    }
-
-                    if #available(iOS 11.0, *), isFollowingSafeAreaGuide {
-                        maker.top.equalTo(parent.safeAreaLayoutGuide.snp.top).offset(y)
-                    } else {
-                        maker.top.equalTo(parent).offset(y)
-                    }
+                default:
+                    maker.leading.trailing.top.bottom.equalTo(parent)
             }
         }
     }
