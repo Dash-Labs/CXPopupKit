@@ -59,9 +59,9 @@ public final class Popupable<Base> {
         }
     }
     
-    public func show(at presenter: UIViewController?, appearance: CXAppearance = CXAppearance(), positive: CXPopupHandler? = nil, negative: CXPopupHandler? = nil, viewDidLoad: CXPopupLifeCycleAction? = nil, viewDidDisappear: CXPopupLifeCycleAction? = nil) {
+    @discardableResult public func show(at presenter: UIViewController?, appearance: CXAppearance = CXAppearance(), positive: CXPopupHandler? = nil, negative: CXPopupHandler? = nil, viewDidLoad: CXPopupLifeCycleAction? = nil, viewDidDisappear: CXPopupLifeCycleAction? = nil) -> PopupWindow {
         guard let mContent = base as? UIView else {
-            return
+            return PopupWindow()
         }
         
         let popupWindow = PopupWindow()
@@ -77,6 +77,7 @@ public final class Popupable<Base> {
         presentationController.appearance = appearance
         
         presenter?.present(popupWindow, animated: true, completion: nil)
+        return popupWindow
     }
 }
 
