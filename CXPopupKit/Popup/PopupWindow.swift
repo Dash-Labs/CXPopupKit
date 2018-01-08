@@ -29,10 +29,10 @@ public final class PopupWindow: UIViewController {
     // Life cycle
     public override func viewDidLoad() {
         super.viewDidLoad()
-        setupLayout()
+        setup()
         viewDidLoadAction?()
     }
-    
+
     public override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
         viewDidDisappearAction?()
@@ -42,8 +42,18 @@ public final class PopupWindow: UIViewController {
         print("POPUP DEINIT")
     }
 
-    private func setupLayout() {
-        LayoutUtil.fill(view: content, at: view)
+    private func setup() {
+        let shouldFollowingSafeAreaGuide = appearance.window.isSafeAreaEnabled ? appearance.window.shouldFillOutSafeArea : false
+        view.backgroundColor = appearance.window.backgroundColor
+        if appearance.window.shouldFillOutSafeArea {
+            LayoutUtil.install(view: content,
+                               at: view,
+                               attached: appearance.window.position,
+                               insets: LayoutUtil.convertWithSafeArea(isFollowingSafeAreaGuide: shouldFollowingSafeAreaGuide, at: UIApplication.shared.keyWindow),
+                               isFollowingSafeAreaGuide: false)
+        } else {
+            LayoutUtil.fill(view: content, at: view)
+        }
     }
 
     @objc private func dismissPopup() {
