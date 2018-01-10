@@ -40,9 +40,9 @@ public final class Popupable<Base> {
     }
 
     public func completeWithPositiveAction(result: Any?) {
-        DispatchQueue.main.async { [weak self] in
-            self?.window?.positiveAction?(result)
-            self?.window?.dismiss(animated: true)
+        DispatchQueue.main.async {
+            self.window?.positiveAction?(result)
+            self.window?.dismiss(animated: true)
         }
     }
 
