@@ -41,7 +41,7 @@ public final class CXAlertView: UIView {
         setupContainer()
         setupLayout()
 
-        alertAppearance.appearance.window.allowTouchOutsideToDismiss = alertAppearance.isModal
+        alertAppearance.appearance.window.allowTouchOutsideToDismiss = !alertAppearance.isModal
         alertAppearance.appearance.window.height = .fixValue(size: estimateViewHeight)
         self.cx.show(at: presenter, appearance: alertAppearance.appearance, positive: positive, negative: negative)
     }
