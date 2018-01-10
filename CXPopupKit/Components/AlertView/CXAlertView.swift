@@ -40,6 +40,8 @@ public final class CXAlertView: UIView {
     public func show(at presenter: UIViewController?, positive: CXPopupHandler? = nil, negative: CXPopupHandler? = nil) {
         setupContainer()
         setupLayout()
+
+        alertAppearance.appearance.window.allowTouchOutsideToDismiss = alertAppearance.isModal
         alertAppearance.appearance.window.height = .fixValue(size: estimateViewHeight)
         self.cx.show(at: presenter, appearance: alertAppearance.appearance, positive: positive, negative: negative)
     }

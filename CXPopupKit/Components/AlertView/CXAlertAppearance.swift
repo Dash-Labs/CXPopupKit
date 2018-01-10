@@ -56,6 +56,7 @@ public struct CXAlertAppearance {
     public var dimension = Dimension()
     public var color = Color()
     public var separator = Separator()
+    public var isModal = true
 
 
     public init(with type: CXAlertType) {
