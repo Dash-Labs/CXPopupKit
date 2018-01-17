@@ -95,14 +95,14 @@ public final class CXAlertView: UIView {
             let targetHeight = LayoutUtil.getEstimateHeight(for: mText, with: targetWidth, and: alertAppearance.font.title)
 
             titleLabel.snp.makeConstraints { maker in
-                maker.leading.trailing.equalTo(self).inset(margin)
+                maker.leading.trailing.top.equalTo(self).inset(margin)
                 maker.height.equalTo(targetHeight)
             }
             titleLabelHeight = targetHeight + margin.top + margin.bottom
         } else {
             titleLabelHeight = 0
             titleLabel.snp.makeConstraints { maker in
-                maker.leading.trailing.top.equalTo(self).inset(margin)
+                maker.leading.trailing.top.equalTo(self)
                 maker.height.equalTo(titleLabelHeight)
             }
         }
