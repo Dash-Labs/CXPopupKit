@@ -21,7 +21,6 @@ public struct CXAlertAppearance {
     public struct Font {
         public var title = UIFont.boldSystemFont(ofSize: 16.0)
         public var detail = UIFont.systemFont(ofSize: 13.0)
-        public var cancel = UIFont.boldSystemFont(ofSize: 14.0)
         public var action = UIFont.boldSystemFont(ofSize: 14.0)
     }
 
@@ -29,9 +28,7 @@ public struct CXAlertAppearance {
         public var backgroundColor: UIColor = .white
         public var title: UIColor = .black
         public var detail: UIColor = .black
-        public var cancelBackground: UIColor = .white
         public var actionBackground: UIColor = .white
-        public var cancelTitle: UIColor? = nil
         public var actionTitle: UIColor? = nil
     }
 
@@ -43,7 +40,7 @@ public struct CXAlertAppearance {
 
     public struct Dimension {
         public var titleMargin: UIEdgeInsets = UIEdgeInsets(top: 24, left: 16, bottom: 0, right: 16)
-        public var detailMargin: UIEdgeInsets = UIEdgeInsets(top: 24, left: 8, bottom: 24, right: 8)
+        public var messageMargin: UIEdgeInsets = UIEdgeInsets(top: 24, left: 8, bottom: 24, right: 8)
         public var buttonHeight: CGFloat = 44
         public var cornerRadius: CGFloat = 8.0
         public var rectCorners: UIRectCorner = .allCorners

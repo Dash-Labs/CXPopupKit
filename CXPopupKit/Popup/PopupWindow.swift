@@ -43,16 +43,20 @@ public final class PopupWindow: UIViewController {
     }
 
     private func setup() {
-        let shouldFollowingSafeAreaGuide = appearance.window.isSafeAreaEnabled ? appearance.window.shouldFillOutSafeArea : false
-        view.backgroundColor = appearance.window.backgroundColor
-        if appearance.window.shouldFillOutSafeArea {
-            LayoutUtil.install(view: content,
-                               at: view,
-                               attached: appearance.window.position,
-                               insets: LayoutUtil.convertWithSafeArea(isFollowingSafeAreaGuide: shouldFollowingSafeAreaGuide, at: UIApplication.shared.keyWindow),
-                               isFollowingSafeAreaGuide: false)
+        let window = appearance.window
+        view.backgroundColor = window.backgroundColor
+
+        let strategy = getLayoutStrategy()
+        strategy.install(content ?? UIView(), into: view, basedOn: appearance)
+    }
+
+    private func getLayoutStrategy() -> CXPopupLayoutStrategy {
+        let w = appearance.window
+
+        if !w.isSafeAreaEnabled {
+            return LayoutWithoutSafeAreaStrategy()
         } else {
-            LayoutUtil.fill(view: content, at: view)
+            return LayoutWithOutsideSafeAreaStrategy()
         }
     }
 

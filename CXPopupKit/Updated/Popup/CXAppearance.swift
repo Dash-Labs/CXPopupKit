@@ -30,9 +30,8 @@ public struct CXAppearance {
         public var allowTouchOutsideToDismiss = true
         public var maskBackgroundColor: UIColor = .black
         public var maskBackgroundAlpha: CGFloat = 0.3
-
+        public var margin: UIEdgeInsets = .zero
         public var isSafeAreaEnabled: Bool = true
-        public var shouldFillOutSafeArea: Bool = false
     }
 
     public struct Orientation {
@@ -58,7 +57,7 @@ public struct CXAppearance {
         var adjustedValue: CGFloat {
             switch self {
                 case .equalToParent:
-                    return 0
+                    return 1
                 case let .partOfParent(percent):
                     return percent <= 0 ? 0 : percent >= 1 ? 1 : percent
                 case let .fixValue(size):

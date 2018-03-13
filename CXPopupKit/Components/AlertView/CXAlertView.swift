@@ -6,80 +6,54 @@
 import UIKit
 import SnapKit
 
-public final class CXAlertView: UIView {
-    public var alertAppearance: CXAlertAppearance
-
-    let titleLabel = UILabel()
-    let detailLabel = UILabel()
-    let stackView = UIStackView()
-    var actionButtons = [UIButton]()
-
-    var titleLabelHeight: CGFloat = 0
-    var detailLabelHeight: CGFloat = 0
-    var actionButtonsHeight: CGFloat = 0
-
-    var estimateViewHeight: CGFloat {
-        return titleLabelHeight + detailLabelHeight + actionButtonsHeight
+public final class CXAlertView: UIView, CXPopupable {
+    struct CXAlertContent {
+        let title: String?
+        let message: String?
+        let cancelButtonTitile: String?
+        let actionButtonTitles: [String]
     }
 
-    private let cancelButtonTag = -1
-    private let title: String?
-    private let detail: String?
-    private let cancel: String?
-    private let actions: [String]
+    public let titleLabel = UILabel()
+    public let messageLabel = UILabel()
+    public var actionButtons = [UIButton]()
+    public var alertAppearance: CXAlertAppearance
 
-    public init(type: CXAlertType, title: String? = nil, detail: String? = nil, cancel: String? = nil, actions: [String] = []) {
+    private let stackView = UIStackView()
+    private let layoutStrategy: CXAlertViewLayoutStrategy
+    private let content: CXAlertContent
+    private let cancelButtonTag = -1
+
+//    var titleLabelHeight: CGFloat = 0
+//    var detailLabelHeight: CGFloat = 0
+//    var actionButtonsHeight: CGFloat = 0
+//
+//    var estimateViewHeight: CGFloat {
+//        return titleLabelHeight + detailLabelHeight + actionButtonsHeight
+//    }
+
+
+
+    public init(type: CXAlertType, title: String? = nil, message: String? = nil, cancel: String? = nil, actions: [String] = []) {
+        self.layoutStrategy = type == .alert ? CXAlertLayoutStrategy() : CXActionSheetStrategy()
         self.alertAppearance = type.appearance
-        self.title = title
-        self.detail = detail
-        self.cancel = cancel
-        self.actions = actions
+        self.content = CXAlertContent(title: title, message: message, cancelButtonTitile: cancel, actionButtonTitles: actions)
         super.init(frame: .zero)
     }
 
-    public func show(at presenter: UIViewController?, positive: CXPopupHandler? = nil, negative: CXPopupHandler? = nil) {
-        setupContainer()
-        setupLayout()
+    func setup() {
+        backgroundColor = alertAppearance.color.backgroundColor
+        layer.cornerRadius = alertAppearance.dimension.cornerRadius
+        layer.masksToBounds = true
 
-        alertAppearance.appearance.window.allowTouchOutsideToDismiss = !alertAppearance.isModal
-        alertAppearance.appearance.window.height = .fixValue(size: estimateViewHeight)
-        self.cx.show(at: presenter, appearance: alertAppearance.appearance, positive: positive, negative: negative)
+        setupTitleLabel()
+        setupMessageLabel()
+        setupActionButton()
+        setupStackViewBackground()
     }
 
-    func setupContainer() {
-        self.backgroundColor = alertAppearance.color.backgroundColor
-        self.layer.cornerRadius = alertAppearance.dimension.cornerRadius
-        self.layer.masksToBounds = true
-
-        setupTitleLabel(with: title)
-        setupDetailLabel(with: detail)
-        setupActionButtons(with: actions, cancel: cancel)
-    }
-
-    func setupStackView() {
-        let stackViewBackgroundView = UIView()
-        self.addSubview(stackViewBackgroundView)
-        LayoutUtil.fill(view: stackView, at: stackViewBackgroundView)
-        drawSeparator(at: stackViewBackgroundView)
-        if alertAppearance.separator.isEnabled {
-            stackViewBackgroundView.backgroundColor = alertAppearance.separator.color
-            stackView.spacing = alertAppearance.separator.width
-        }
-        stackViewBackgroundView.snp.makeConstraints { maker in
-            maker.leading.trailing.bottom.equalTo(self)
-            maker.top.equalTo(self.detailLabel.snp.bottom).offset(alertAppearance.dimension.detailMargin.bottom)
-        }
-    }
-
-    func setupLayout() {
-        layoutActionButtons()
-        updateDetailLabelHeight()
-        updateTitleLabelHeight()
-
-    }
-
-    private func setupTitleLabel(with title: String?) {
-        titleLabel.text = title
+    func setupTitleLabel() {
+        titleLabel.text = content.title
         titleLabel.font = alertAppearance.font.title
         titleLabel.textAlignment = .center
         titleLabel.numberOfLines = 0
@@ -88,138 +62,85 @@ public final class CXAlertView: UIView {
         addSubview(titleLabel)
     }
 
-    private func updateTitleLabelHeight() {
-        let margin = alertAppearance.dimension.titleMargin
-        if case let .fixValue(size) = alertAppearance.appearance.window.width, let mText = titleLabel.text as NSString? {
-            let targetWidth = size - margin.left - margin.right
-            let targetHeight = LayoutUtil.getEstimateHeight(for: mText, with: targetWidth, and: alertAppearance.font.title)
+    func setupMessageLabel() {
+        messageLabel.text = content.message
+        messageLabel.font = alertAppearance.font.detail
+        messageLabel.textAlignment = .center
+        messageLabel.numberOfLines = 0
+        messageLabel.lineBreakMode = .byWordWrapping
+        addSubview(messageLabel)
+    }
 
-            titleLabel.snp.makeConstraints { maker in
-                maker.leading.trailing.top.equalTo(self).inset(margin)
-                maker.height.equalTo(targetHeight)
-            }
-            titleLabelHeight = targetHeight + margin.top + margin.bottom
-        } else {
-            titleLabelHeight = 0
-            titleLabel.snp.makeConstraints { maker in
-                maker.leading.trailing.top.equalTo(self)
-                maker.height.equalTo(titleLabelHeight)
-            }
+    func setupActionButton() {
+        for actionTitle in content.actionButtonTitles {
+            actionButtons.append(getActionButton(with: actionTitle))
+        }
+
+        if let cancelButtonTitle = content.cancelButtonTitile {
+            let cancelButton = getActionButton(with: cancelButtonTitle)
+            cancelButton.tag = cancelButtonTag
+            actionButtons.append(cancelButton)
         }
     }
 
-    private func setupDetailLabel(with detail: String?) {
-        detailLabel.text = detail
-        detailLabel.font = alertAppearance.font.detail
-        detailLabel.textAlignment = .center
-        detailLabel.numberOfLines = 0
-        detailLabel.lineBreakMode = .byWordWrapping
-        addSubview(detailLabel)
-    }
-
-    private func updateDetailLabelHeight() {
-        let margin = alertAppearance.dimension.detailMargin
-        if case let .fixValue(size) = alertAppearance.appearance.window.width, let mText = detailLabel.text as NSString? {
-            let targetWidth = size - margin.left - margin.right
-            let targetHeight = LayoutUtil.getEstimateHeight(for: mText, with: targetWidth, and: alertAppearance.font.detail)
-
-            detailLabel.snp.makeConstraints { maker in
-                maker.leading.trailing.equalTo(self).inset(margin)
-                maker.top.equalTo(titleLabel.snp.bottom).offset(margin.top)
-                maker.height.equalTo(targetHeight)
-            }
-            detailLabelHeight = targetHeight + margin.top + margin.bottom
-        } else {
-            detailLabelHeight = margin.top + margin.bottom
-            detailLabel.snp.makeConstraints { maker in
-                maker.leading.trailing.equalTo(self).inset(margin)
-                maker.top.equalTo(titleLabel.snp.bottom).offset(margin.top)
-                maker.height.equalTo(detailLabelHeight)
-            }
-        }
-    }
-
-    private func setupActionButtons(with actions: [String], cancel: String?) {
-        for (index, action) in actions.enumerated() {
-            createActionButton(action: action, tag: index)
-        }
-
-        if let mCancel = cancel {
-            createActionButton(action: mCancel, tag: cancelButtonTag)
-        }
-    }
-
-    private func createActionButton(action: String, tag: Int) {
+    func getActionButton(with buttonTitle: String) -> UIButton {
         let button = UIButton(type: .system)
-        button.tag = tag
-        setup(button: button, with: action, and: tag)
+        button.setTitle(buttonTitle, for: .normal)
+        button.titleLabel?.font = alertAppearance.font.action
+        button.backgroundColor = alertAppearance.color.actionBackground
+        button.setTitleColor(alertAppearance.color.actionTitle, for: .normal)
+        button.addTarget(self, action: #selector(actionTriggered(button:)), for: .touchUpInside)
+        return button
     }
 
-    private func setup(button: UIButton, with action: String, and tag: Int) {
-        let buttonFont = tag == cancelButtonTag ? alertAppearance.font.cancel : alertAppearance.font.action
-        let buttonTitleColor = tag == cancelButtonTag ? alertAppearance.color.cancelTitle : alertAppearance.color.actionTitle
-        let buttonBackgroundColor = tag == cancelButtonTag ? alertAppearance.color.cancelBackground : alertAppearance.color.actionBackground
+    func setupStackViewBackground() {
+        let stackViewBackgroundView = UIView()
+        self.addSubview(stackViewBackgroundView)
+        if alertAppearance.separator.isEnabled {
+            stackViewBackgroundView.backgroundColor = alertAppearance.separator.color
+            stackView.spacing = alertAppearance.separator.width
+        }
 
-        button.setTitle(action, for: .normal)
-        button.titleLabel?.font = buttonFont
-        button.backgroundColor = buttonBackgroundColor
-        button.setTitleColor(buttonTitleColor, for: .normal)
+        stackViewBackgroundView.addSubview(stackView)
+        stackView.snp.makeConstraints { (maker) in
+            maker.leading.trailing.equalTo(stackViewBackgroundView)
+            maker.top.equalTo(stackViewBackgroundView).offset(1)
+        }
 
-        actionButtons.append(button)
-        button.addTarget(self, action: #selector(actionTriggered(button:)), for: .touchUpInside)
+        stackViewBackgroundView.snp.makeConstraints { maker in
+            maker.leading.trailing.bottom.equalTo(self)
+            maker.top.equalTo(self.messageLabel.snp.bottom).offset(alertAppearance.dimension.messageMargin.bottom)
+        }
+    }
+
+    func setupLayout() {
+        var height: CGFloat = 0
+        height += layoutStrategy.layout(titleLabel: titleLabel, at: self, alertAppearance: alertAppearance)
+        height += layoutStrategy.layout(messageLabel: messageLabel, based: titleLabel, at: self, alertAppearance: alertAppearance)
+        height += layoutStrategy.layout(actionButtons: actionButtons, to: stackView, based: messageLabel, at: self, alertAppearance: alertAppearance)
+        alertAppearance.appearance.window.height = .fixValue(size: height)
     }
 
     @objc func actionTriggered(button: UIButton) {
+        let result = button.title(for: .normal)
         if button.tag == cancelButtonTag {
-            self.cx.completeWithNegativeAction(result: button.title(for: .normal))
+            self.popup?.completeWithNegative(result: result)
         } else {
-            self.cx.completeWithPositiveAction(result: button.title(for: .normal))
-        }
-    }
-
-    private func layoutActionButtons() {
-        setupStackView()
-        stackView.alignment = .fill
-        stackView.distribution = .fillEqually
-        if alertAppearance.alertType == .alert && actionButtons.count == 2 {
-            if let left = actionButtons.first, let right = actionButtons.last {
-                stackView.axis = .horizontal
-                stackView.addArrangedSubview(left)
-                stackView.addArrangedSubview(right)
-            }
-        } else {
-            for button in actionButtons {
-                stackView.axis = .vertical
-                stackView.addArrangedSubview(button)
-            }
-        }
-        updateActionButtonsHeight()
-    }
-
-    private func updateActionButtonsHeight() {
-        if alertAppearance.alertType == .alert && actionButtons.count == 2 {
-            actionButtonsHeight = alertAppearance.dimension.buttonHeight
-        } else {
-            actionButtonsHeight = alertAppearance.dimension.buttonHeight * CGFloat(actionButtons.count)
-        }
-        stackView.snp.makeConstraints { maker in
-            maker.height.equalTo(actionButtonsHeight)
-        }
-    }
-
-    private func drawSeparator(at parent: UIView) {
-        if alertAppearance.separator.isEnabled {
-            let separator = UIView(frame: .zero)
-            parent.addSubview(separator)
-            separator.backgroundColor = alertAppearance.separator.color
-            separator.snp.makeConstraints { maker in
-                maker.leading.trailing.top.equalTo(self.stackView)
-                maker.height.equalTo(alertAppearance.separator.width)
-            }
+            self.popup?.completeWithPositive(result: result)
         }
     }
 
     required public init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+
+    public func createPopup() -> CXPopup {
+        setup()
+        setupLayout()
+        return CXPopup(with: self, appearance: alertAppearance.appearance)
+    }
+
+    public func show(at presenter: UIViewController?) {
+        createPopup().show(at: presenter)
     }
 }
