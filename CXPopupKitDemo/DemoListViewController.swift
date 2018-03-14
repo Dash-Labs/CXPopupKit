@@ -12,7 +12,7 @@ import CXPopupKit
 class DemoListViewController: UIViewController {
     @IBOutlet private weak var tableView: UITableView!
 
-    private let items: [DemoItem] = [.basic, .roundedCorner, .slideMenu, .slideMenuWithSafeArea, .actionSheet, .basicSampleWithSafeAreaInside, .basicSampleWithoutSafeAreaButPadding, .alertView, .singleStringPicker, .singleCustomPicker]
+    private let items: [DemoItem] = [.basic, .roundedCorner, .slideMenu, .slideMenuWithSafeArea, .actionSheet, .basicSampleWithSafeAreaInside, .basicSampleWithoutSafeAreaButPadding, .alertView, .singleStringPicker, .singleCustomPicker, .datePicker]
     private let cellIdentifier = "DemoItem"
 
     override func viewDidLoad() {
@@ -67,6 +67,8 @@ extension DemoListViewController: UITableViewDelegate {
             showSingleStringPicker()
         case .singleCustomPicker:
             showSingleCustomPicker()
+        case .datePicker:
+            showDatetimePicker()
         }
     }
 
@@ -174,7 +176,7 @@ extension DemoListViewController: UITableViewDelegate {
         }
     }
 
-    public func showSingleCustomPicker() {
+    private func showSingleCustomPicker() {
         let personA = Person(name: "Jack", age: 23)
         let personB = Person(name: "Rose", age: 22)
         let personC = Person(name: "Pi", age: 18)
@@ -185,6 +187,20 @@ extension DemoListViewController: UITableViewDelegate {
                 return
             }
             print(person.age)
+        }
+        DispatchQueue.main.async {
+            popup.show(at: self)
+        }
+    }
+
+    private func showDatetimePicker() {
+        let picker = CXDatePicker(startDate: nil, mode: .dateAndTime, title: "Start Date", cancelButtonText: "Cancel", doneButtonText: "Done")
+        let popup = picker.createPopup()
+        popup.positiveAction = { result in
+            guard let date = result as? Date else {
+                return
+            }
+            print(date)
         }
         DispatchQueue.main.async {
             popup.show(at: self)
@@ -203,6 +219,7 @@ enum DemoItem {
     case alertView
     case singleStringPicker
     case singleCustomPicker
+    case datePicker
 
     var title: String {
         switch self {
@@ -226,6 +243,8 @@ enum DemoItem {
             return "Single String Picker"
         case .singleCustomPicker:
             return "Single Custom Picker"
+        case .datePicker:
+            return "Date Picker"
         }
     }
 }
