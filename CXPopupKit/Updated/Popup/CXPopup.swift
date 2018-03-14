@@ -44,7 +44,7 @@ public final class CXPopup {
         print("CXPopup deinit")
     }
 
-    private let window = CXPopupWindow()
+    private var window = CXPopupWindow()
     private var presentationController: CXPresentationController?
 
     public init(with popupable: CXPopupable, appearance: CXAppearance? = nil) {
@@ -55,7 +55,7 @@ public final class CXPopup {
 
     public func show(at presenter: UIViewController?) {
         presentationController = CXPresentationController(presentedViewController: window, presenting: presenter)
-        presentationController?.appearance = window.appearance
+        presentationController?.appearance = appearance
         window.transitioningDelegate = presentationController
         presenter?.present(window, animated: true, completion: nil)
     }

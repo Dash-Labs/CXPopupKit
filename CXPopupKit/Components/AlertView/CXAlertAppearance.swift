@@ -53,24 +53,29 @@ public struct CXAlertAppearance {
     public var dimension = Dimension()
     public var color = Color()
     public var separator = Separator()
-    public var isModal = true
-
+    public var isModal = true {
+        didSet {
+            appearance.window.allowTouchOutsideToDismiss = !isModal
+        }
+    }
 
     public init(with type: CXAlertType) {
         self.alertType = type
 
         switch alertType {
-            case .actionSheet:
-                appearance.window.width = .fixValue(size: UIScreen.main.bounds.width - 16)
-                appearance.window.position = .bottom
-                appearance.animation.style = .plain
-                appearance.animation.duration = CXAnimation.Duration(0.35)
-                appearance.animation.transition = CXAnimation.Transition(in: .up, out: .down)
-            case .alert:
-                appearance.window.width = .fixValue(size: 247)
-                appearance.animation.style = .bounceZoom
-                appearance.animation.duration = CXAnimation.Duration(0.35)
-                appearance.animation.transition = CXAnimation.Transition(.center)
+        case .actionSheet:
+            appearance.window.width = .equalToParent
+            appearance.window.position = .bottom
+            appearance.window.enableInsideSafeArea = true
+            appearance.animation.style = .plain
+            appearance.animation.duration = CXAnimation.Duration(0.35)
+            appearance.animation.transition = CXAnimation.Transition(in: .up, out: .down)
+        case .alert:
+            appearance.window.width = .fixValue(size: 300)
+            appearance.animation.style = .bounceZoom
+            appearance.animation.duration = CXAnimation.Duration(0.35)
+            appearance.animation.transition = CXAnimation.Transition(.center)
+            appearance.window.allowTouchOutsideToDismiss = false
         }
     }
 }

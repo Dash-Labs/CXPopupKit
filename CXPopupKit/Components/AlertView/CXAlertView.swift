@@ -20,19 +20,10 @@ public final class CXAlertView: UIView, CXPopupable {
     public var alertAppearance: CXAlertAppearance
 
     private let stackView = UIStackView()
+    private let stackViewBackgroundView = UIView()
     private let layoutStrategy: CXAlertViewLayoutStrategy
     private let content: CXAlertContent
     private let cancelButtonTag = -1
-
-//    var titleLabelHeight: CGFloat = 0
-//    var detailLabelHeight: CGFloat = 0
-//    var actionButtonsHeight: CGFloat = 0
-//
-//    var estimateViewHeight: CGFloat {
-//        return titleLabelHeight + detailLabelHeight + actionButtonsHeight
-//    }
-
-
 
     public init(type: CXAlertType, title: String? = nil, message: String? = nil, cancel: String? = nil, actions: [String] = []) {
         self.layoutStrategy = type == .alert ? CXAlertLayoutStrategy() : CXActionSheetStrategy()
@@ -81,6 +72,10 @@ public final class CXAlertView: UIView, CXPopupable {
             cancelButton.tag = cancelButtonTag
             actionButtons.append(cancelButton)
         }
+
+        actionButtons.forEach {
+            stackView.addArrangedSubview($0)
+        }
     }
 
     func getActionButton(with buttonTitle: String) -> UIButton {
@@ -94,8 +89,11 @@ public final class CXAlertView: UIView, CXPopupable {
     }
 
     func setupStackViewBackground() {
-        let stackViewBackgroundView = UIView()
         self.addSubview(stackViewBackgroundView)
+        stackView.alignment = .fill
+        stackView.distribution = .fillEqually
+        stackView.axis = alertAppearance.alertType == .actionSheet ? .vertical : actionButtons.count < 3 ? .horizontal : .vertical
+
         if alertAppearance.separator.isEnabled {
             stackViewBackgroundView.backgroundColor = alertAppearance.separator.color
             stackView.spacing = alertAppearance.separator.width
@@ -103,7 +101,7 @@ public final class CXAlertView: UIView, CXPopupable {
 
         stackViewBackgroundView.addSubview(stackView)
         stackView.snp.makeConstraints { (maker) in
-            maker.leading.trailing.equalTo(stackViewBackgroundView)
+            maker.leading.trailing.bottom.equalTo(stackViewBackgroundView)
             maker.top.equalTo(stackViewBackgroundView).offset(1)
         }
 
@@ -117,7 +115,7 @@ public final class CXAlertView: UIView, CXPopupable {
         var height: CGFloat = 0
         height += layoutStrategy.layout(titleLabel: titleLabel, at: self, alertAppearance: alertAppearance)
         height += layoutStrategy.layout(messageLabel: messageLabel, based: titleLabel, at: self, alertAppearance: alertAppearance)
-        height += layoutStrategy.layout(actionButtons: actionButtons, to: stackView, based: messageLabel, at: self, alertAppearance: alertAppearance)
+        height += layoutStrategy.layout(isVertical: stackView.axis == .vertical, actionCount: actionButtons.count, stackViewBackgroundView: stackViewBackgroundView, based: messageLabel, at: self, alertAppearance: alertAppearance)
         alertAppearance.appearance.window.height = .fixValue(size: height)
     }
 
@@ -137,6 +135,7 @@ public final class CXAlertView: UIView, CXPopupable {
     public func createPopup() -> CXPopup {
         setup()
         setupLayout()
+        alertAppearance.appearance.window.backgroundColor = self.backgroundColor ?? .white
         return CXPopup(with: self, appearance: alertAppearance.appearance)
     }
 

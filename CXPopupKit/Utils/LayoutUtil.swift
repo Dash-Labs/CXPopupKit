@@ -7,12 +7,37 @@ import Foundation
 import SnapKit
 
 class LayoutUtil {
+    static func updateFrameForInsideSafeArea(frame: CGRect?, at container: UIView, position: CXAppearance.WindowPosition) -> CGRect {
+        let updatedFrame = frame ?? .zero
+        var inset: UIEdgeInsets = .zero
+        if #available(iOS 11.0, *) {
+            inset = container.safeAreaInsets
+        } else {
+            return updatedFrame
+        }
+
+        switch position {
+        case .center:
+            return updatedFrame
+        case .top:
+            return CGRect(x: updatedFrame.origin.x, y: 0, width: updatedFrame.size.width, height: updatedFrame.size.height + inset.top)
+        case .bottom:
+            return CGRect(x: updatedFrame.origin.x, y: updatedFrame.origin.y - inset.bottom, width: updatedFrame.size.width, height: updatedFrame.size.height + inset.bottom)
+        case .left:
+            return CGRect(x: 0, y: updatedFrame.origin.y, width: updatedFrame.size.width + inset.left, height: updatedFrame.size.height)
+        case .right:
+            return CGRect(x: updatedFrame.origin.x - inset.right, y: updatedFrame.origin.y, width: updatedFrame.size.width + inset.right, height: updatedFrame.size.height)
+        case .custom(let offsetX, let offsetY):
+            return updatedFrame
+        }
+    }
+
     static func getEstimateHeight(for string: NSString, with width: CGFloat, and font: UIFont) -> CGFloat {
         return string.boundingRect(with: CGSize(width: Double(width), height: Double.greatestFiniteMagnitude),
                                    options: NSStringDrawingOptions.usesLineFragmentOrigin,
                                    attributes: [NSAttributedStringKey.font: font],
                                    context: nil)
-                .size.height
+            .size.height
     }
 
     static func fill(view child: UIView, at parent: UIView) {
@@ -22,15 +47,25 @@ class LayoutUtil {
         }
     }
 
-    static func presentedViewSize(_ containerView: UIView, _ window: CXAppearance.Window) -> CGRect {
+    static func presentedViewSize(_ containerView: UIView, _ window: CXAppearance.Window, _ isSafeAreaEnabled: Bool) -> CGRect {
         let width = min(containerView.bounds.width, getLength(for: window.width, basedOn: containerView.bounds.width))
         let height = min(containerView.bounds.height, getLength(for: window.height, basedOn: containerView.bounds.height))
-        let X = getWindowPositionX(position: window.position, containerWidth: containerView.bounds.width, targetWidth: width, inset: window.margin)
-        let Y = getWindowPositionY(position: window.position, containerHeight: containerView.bounds.height, targetHeight: height, inset: window.margin)
+        let inset = getInset(from: containerView, and: window.margin, isSafeAreaEnabled: isSafeAreaEnabled)
+        let X = getWindowPositionX(position: window.position, containerWidth: containerView.bounds.width, targetWidth: width, inset: inset)
+        let Y = getWindowPositionY(position: window.position, containerHeight: containerView.bounds.height, targetHeight: height, inset: inset)
         return CGRect(origin: CGPoint(x: X, y: Y), size: CGSize(width: width, height: height))
     }
 
-    private static func getLength(for size: CXAppearance.WindowSize, basedOn length: CGFloat) -> CGFloat {
+    private static func getInset(from containerView: UIView, and margin: UIEdgeInsets, isSafeAreaEnabled: Bool) -> UIEdgeInsets {
+        if #available(iOS 11.0, *), isSafeAreaEnabled {
+            let containerInset = containerView.safeAreaInsets
+            return UIEdgeInsets(top: containerInset.top + margin.top, left: containerInset.left + margin.left, bottom: containerInset.top + margin.top, right: containerInset.right + margin.right)
+        } else {
+            return margin
+        }
+    }
+
+    static func getLength(for size: CXAppearance.WindowSize, basedOn length: CGFloat) -> CGFloat {
         switch size {
         case .equalToParent:
             return length

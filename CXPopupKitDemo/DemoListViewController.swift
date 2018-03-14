@@ -12,7 +12,7 @@ import CXPopupKit
 class DemoListViewController: UIViewController {
     @IBOutlet private weak var tableView: UITableView!
 
-    private let items: [DemoItem] = [.basic, .roundedCorner, .slideMenu, .slideMenuWithSafeArea]
+    private let items: [DemoItem] = [.basic, .roundedCorner, .slideMenu, .slideMenuWithSafeArea, .actionSheet, .basicSampleWithSafeAreaInside, .basicSampleWithoutSafeAreaButPadding, .alertView]
     private let cellIdentifier = "DemoItem"
 
     override func viewDidLoad() {
@@ -55,12 +55,24 @@ extension DemoListViewController: UITableViewDelegate {
             showSlideMenuPopup()
         case .slideMenuWithSafeArea:
             showSlideMenuWithSafeAreaPopup()
+        case .actionSheet:
+            showActionSheetPopup()
+        case .basicSampleWithSafeAreaInside:
+            showBasicSampleWithSafeAreaInsidePopup()
+        case .basicSampleWithoutSafeAreaButPadding:
+            showBasicSampleWithoutSafeAreaButPadding()
+        case .alertView:
+            showAlertViewPopup()
         }
     }
 
     private func showBasicPopup() {
         let basicSample = BasicSample()
         basicSample.backgroundColor = .white
+        basicSample.appearance.window.width = .fixValue(size: 300)
+        basicSample.appearance.window.height = .partOfParent(percent: 0.35)
+        basicSample.appearance.window.position = .center
+        basicSample.appearance.animation.style = .bounceZoom
         let popup = basicSample.createPopup()
         DispatchQueue.main.async {
             popup.show(at: self)
@@ -72,7 +84,11 @@ extension DemoListViewController: UITableViewDelegate {
         basicSample.backgroundColor = .white
         basicSample.layer.cornerRadius = 9.0
         basicSample.layer.masksToBounds = true
+        basicSample.appearance.window.width = .fixValue(size: 300)
+        basicSample.appearance.window.height = .partOfParent(percent: 0.35)
+        basicSample.appearance.window.position = .center
         basicSample.appearance.animation.style = .bounceZoom
+        basicSample.appearance.orientation.isAutoRotationEnabled = true
         let popup = basicSample.createPopup()
         DispatchQueue.main.async {
             popup.show(at: self)
@@ -99,6 +115,53 @@ extension DemoListViewController: UITableViewDelegate {
             popup.show(at: self)
         }
     }
+
+    private func showActionSheetPopup() {
+        let actionSheet = CXAlertView(type: .actionSheet, title: nil, message: "Pick a photo from library", cancel: "cancel", actions: ["OK"])
+        DispatchQueue.main.async {
+            actionSheet.show(at: self)
+        }
+    }
+
+    private func showAlertViewPopup() {
+        let actionSheet = CXAlertView(type: .alert, title: nil, message: "Pick a photo from library", cancel: "cancel", actions: ["OK"])
+        DispatchQueue.main.async {
+            actionSheet.show(at: self)
+        }
+    }
+
+    private func showBasicSampleWithSafeAreaInsidePopup() {
+        let basicSample = BasicSample()
+        basicSample.backgroundColor = .white
+        basicSample.appearance.window.width = .equalToParent
+        basicSample.appearance.window.height = .partOfParent(percent: 0.35)
+        basicSample.appearance.window.position = .bottom
+        basicSample.appearance.window.backgroundColor = .white
+        basicSample.appearance.animation.style = .fade
+        basicSample.appearance.window.isSafeAreaEnabled = true
+        basicSample.appearance.window.enableInsideSafeArea = true
+        let popup = basicSample.createPopup()
+        DispatchQueue.main.async {
+            popup.show(at: self)
+        }
+    }
+
+    private func showBasicSampleWithoutSafeAreaButPadding() {
+        let basicSample = BasicSample()
+        basicSample.layer.cornerRadius = 32.0
+        basicSample.layer.masksToBounds = true
+        basicSample.backgroundColor = .white
+        basicSample.appearance.window.width = .partOfParent(percent: 0.95)
+        basicSample.appearance.window.height = .partOfParent(percent: 0.35)
+        basicSample.appearance.window.position = .bottom
+        basicSample.appearance.animation.style = .fade
+        basicSample.appearance.window.isSafeAreaEnabled = true
+        basicSample.appearance.window.margin = UIEdgeInsets(top: 0, left: 8, bottom: 8, right: 8)
+        let popup = basicSample.createPopup()
+        DispatchQueue.main.async {
+            popup.show(at: self)
+        }
+    }
 }
 
 enum DemoItem {
@@ -106,6 +169,10 @@ enum DemoItem {
     case roundedCorner
     case slideMenu
     case slideMenuWithSafeArea
+    case actionSheet
+    case basicSampleWithSafeAreaInside
+    case basicSampleWithoutSafeAreaButPadding
+    case alertView
 
     var title: String {
         switch self {
@@ -117,6 +184,14 @@ enum DemoItem {
             return "Slide menu (disable safe area)"
         case .slideMenuWithSafeArea:
             return "Slide menu (enable safe area)"
+        case .actionSheet:
+            return "Action sheet"
+        case .basicSampleWithSafeAreaInside:
+            return "Basic + (Safe area inside)"
+        case .basicSampleWithoutSafeAreaButPadding:
+            return "Basic + (Padding, no safe area)"
+        case .alertView:
+            return "Alert View"
         }
     }
 }

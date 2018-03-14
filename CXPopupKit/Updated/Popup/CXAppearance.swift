@@ -31,7 +31,20 @@ public struct CXAppearance {
         public var maskBackgroundColor: UIColor = .black
         public var maskBackgroundAlpha: CGFloat = 0.3
         public var margin: UIEdgeInsets = .zero
-        public var isSafeAreaEnabled: Bool = true
+        public var isSafeAreaEnabled: Bool = true {
+            didSet {
+                if enableInsideSafeArea {
+                    isSafeAreaEnabled = false
+                }
+            }
+        }
+        public var enableInsideSafeArea: Bool = false {
+            didSet {
+                if enableInsideSafeArea {
+                    isSafeAreaEnabled = false
+                }
+            }
+        }
     }
 
     public struct Orientation {

@@ -15,7 +15,7 @@ final class CXPresentationController: UIPresentationController, UIViewController
     private var backgroundView: UIView?
 
     override var frameOfPresentedViewInContainerView: CGRect {
-        return LayoutUtil.presentedViewSize(containerView!, appearance.window)
+        return LayoutUtil.presentedViewSize(containerView!, appearance.window, appearance.window.isSafeAreaEnabled)
     }
 
     override var presentedView: UIView? {
@@ -71,7 +71,7 @@ final class CXPresentationController: UIPresentationController, UIViewController
     override func containerViewWillLayoutSubviews() {
         super.containerViewWillLayoutSubviews()
         self.backgroundView?.frame = self.containerView!.bounds
-        self.presentationWrapperView?.frame = self.frameOfPresentedViewInContainerView
+        updatePresentationWrapperViewFrame()
     }
 
     func presentationController(forPresented presented: UIViewController, presenting: UIViewController?, source: UIViewController) -> UIPresentationController? {
@@ -88,13 +88,17 @@ final class CXPresentationController: UIPresentationController, UIViewController
 
     private func updatePresentedViewControllerView() {
         let presentedViewControllerView = super.presentedView!
-        presentedViewControllerView.frame = presentationWrapperView?.bounds ?? .zero
+        let frame = CGRect(origin: .zero, size: frameOfPresentedViewInContainerView.size)
+        presentedViewControllerView.frame = frame
         presentedViewControllerView.autoresizingMask = [.flexibleHeight, .flexibleWidth]
         presentationWrapperView?.addSubview(presentedViewControllerView)
     }
 
     private func setupPresentationWrapperView() {
-        presentationWrapperView = UIView(frame: self.frameOfPresentedViewInContainerView)
+        presentationWrapperView = UIView()
+        presentationWrapperView?.backgroundColor = appearance.window.backgroundColor
+        updatePresentationWrapperViewFrame()
+
         if appearance.shadow.isEnabled {
             presentationWrapperView?.layer.shadowColor = appearance.shadow.color.cgColor
             presentationWrapperView?.layer.shadowOffset = appearance.shadow.offset
@@ -103,8 +107,15 @@ final class CXPresentationController: UIPresentationController, UIViewController
         }
     }
 
+    private func updatePresentationWrapperViewFrame() {
+        presentationWrapperView?.frame = frameOfPresentedViewInContainerView
+        if appearance.window.enableInsideSafeArea {
+            presentationWrapperView?.frame = LayoutUtil.updateFrameForInsideSafeArea(frame: presentationWrapperView?.frame, at: containerView!, position: appearance.window.position)
+        }
+    }
+
     private func setupBackgroundView() {
-        backgroundView = UIView(frame: self.containerView!.bounds)
+        backgroundView = UIView(frame: containerView!.bounds)
         backgroundView?.backgroundColor = appearance.window.maskBackgroundColor
         backgroundView?.alpha = appearance.window.maskBackgroundAlpha
         backgroundView?.isOpaque = false
@@ -112,7 +123,7 @@ final class CXPresentationController: UIPresentationController, UIViewController
         if appearance.window.allowTouchOutsideToDismiss {
             backgroundView?.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(backgroundViewTapped)))
         }
-        self.containerView?.addSubview(backgroundView!)
+        containerView?.addSubview(backgroundView!)
 
         let coordinator = self.presentingViewController.transitionCoordinator
         backgroundView?.alpha = 0
@@ -122,6 +133,6 @@ final class CXPresentationController: UIPresentationController, UIViewController
     }
 
     @objc private func backgroundViewTapped(gesture: UITapGestureRecognizer) {
-        self.presentingViewController.dismiss(animated: true, completion: nil)
+        presentingViewController.dismiss(animated: true, completion: nil)
     }
 }
