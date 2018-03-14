@@ -7,6 +7,7 @@ import UIKit
 import SnapKit
 
 public final class CXAlertView: UIView, CXPopupable {
+
     struct CXAlertContent {
         let title: String?
         let message: String?
@@ -135,7 +136,11 @@ public final class CXAlertView: UIView, CXPopupable {
     public func createPopup() -> CXPopup {
         setup()
         setupLayout()
-        alertAppearance.appearance.window.backgroundColor = self.backgroundColor ?? .white
+        if alertAppearance.alertType == .actionSheet {
+            alertAppearance.appearance.window.backgroundColor = self.backgroundColor ?? .white
+        } else {
+            alertAppearance.appearance.window.backgroundColor = .clear
+        }
         return CXPopup(with: self, appearance: alertAppearance.appearance)
     }
 

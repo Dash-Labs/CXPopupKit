@@ -12,7 +12,7 @@ import CXPopupKit
 class DemoListViewController: UIViewController {
     @IBOutlet private weak var tableView: UITableView!
 
-    private let items: [DemoItem] = [.basic, .roundedCorner, .slideMenu, .slideMenuWithSafeArea, .actionSheet, .basicSampleWithSafeAreaInside, .basicSampleWithoutSafeAreaButPadding, .alertView]
+    private let items: [DemoItem] = [.basic, .roundedCorner, .slideMenu, .slideMenuWithSafeArea, .actionSheet, .basicSampleWithSafeAreaInside, .basicSampleWithoutSafeAreaButPadding, .alertView, .singleStringPicker, .singleCustomPicker]
     private let cellIdentifier = "DemoItem"
 
     override func viewDidLoad() {
@@ -63,6 +63,10 @@ extension DemoListViewController: UITableViewDelegate {
             showBasicSampleWithoutSafeAreaButPadding()
         case .alertView:
             showAlertViewPopup()
+        case .singleStringPicker:
+            showSingleStringPicker()
+        case .singleCustomPicker:
+            showSingleCustomPicker()
         }
     }
 
@@ -162,6 +166,30 @@ extension DemoListViewController: UITableViewDelegate {
             popup.show(at: self)
         }
     }
+
+    private func showSingleStringPicker() {
+        let picker = CXPicker(with: ["Yes", "No", "I don't think so"], title: "isGoodEnough", cancelButtonText: "Cancel", doneButtonText: "Done")
+        DispatchQueue.main.async {
+            picker.createPopup().show(at: self)
+        }
+    }
+
+    public func showSingleCustomPicker() {
+        let personA = Person(name: "Jack", age: 23)
+        let personB = Person(name: "Rose", age: 22)
+        let personC = Person(name: "Pi", age: 18)
+        let picker = CXPicker(with: [personA, personB, personC], title: "Character", cancelButtonText: "Cancel", doneButtonText: "Done")
+        let popup = picker.createPopup()
+        popup.positiveAction = { result in
+            guard let person = result as? Person else {
+                return
+            }
+            print(person.age)
+        }
+        DispatchQueue.main.async {
+            popup.show(at: self)
+        }
+    }
 }
 
 enum DemoItem {
@@ -173,6 +201,8 @@ enum DemoItem {
     case basicSampleWithSafeAreaInside
     case basicSampleWithoutSafeAreaButPadding
     case alertView
+    case singleStringPicker
+    case singleCustomPicker
 
     var title: String {
         switch self {
@@ -192,6 +222,10 @@ enum DemoItem {
             return "Basic + (Padding, no safe area)"
         case .alertView:
             return "Alert View"
+        case .singleStringPicker:
+            return "Single String Picker"
+        case .singleCustomPicker:
+            return "Single Custom Picker"
         }
     }
 }
