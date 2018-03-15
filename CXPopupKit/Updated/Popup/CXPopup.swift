@@ -40,6 +40,10 @@ public final class CXPopup {
         }
     }
 
+    public var cxWindow: UIViewController {
+        return window
+    }
+
     deinit {
         print("CXPopup deinit")
     }
