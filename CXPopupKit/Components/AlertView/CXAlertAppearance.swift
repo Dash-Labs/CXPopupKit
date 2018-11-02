@@ -21,6 +21,7 @@ public struct CXAlertAppearance {
     public struct Font {
         public var title = UIFont.boldSystemFont(ofSize: 16.0)
         public var detail = UIFont.systemFont(ofSize: 13.0)
+        public var cancel = UIFont.boldSystemFont(ofSize: 14.0)
         public var action = UIFont.boldSystemFont(ofSize: 14.0)
     }
 
@@ -28,7 +29,9 @@ public struct CXAlertAppearance {
         public var backgroundColor: UIColor = .white
         public var title: UIColor = .black
         public var detail: UIColor = .black
+        public var cancelBackground: UIColor = .white
         public var actionBackground: UIColor = .white
+        public var cancelTitle: UIColor? = nil
         public var actionTitle: UIColor? = nil
     }
 
@@ -40,7 +43,7 @@ public struct CXAlertAppearance {
 
     public struct Dimension {
         public var titleMargin: UIEdgeInsets = UIEdgeInsets(top: 24, left: 16, bottom: 0, right: 16)
-        public var messageMargin: UIEdgeInsets = UIEdgeInsets(top: 24, left: 8, bottom: 24, right: 8)
+        public var detailMargin: UIEdgeInsets = UIEdgeInsets(top: 24, left: 8, bottom: 24, right: 8)
         public var buttonHeight: CGFloat = 44
         public var cornerRadius: CGFloat = 8.0
         public var rectCorners: UIRectCorner = .allCorners
@@ -53,29 +56,24 @@ public struct CXAlertAppearance {
     public var dimension = Dimension()
     public var color = Color()
     public var separator = Separator()
-    public var isModal = true {
-        didSet {
-            appearance.window.allowTouchOutsideToDismiss = !isModal
-        }
-    }
+    public var isModal = true
+
 
     public init(with type: CXAlertType) {
         self.alertType = type
 
         switch alertType {
-        case .actionSheet:
-            appearance.window.width = .equalToParent
-            appearance.window.position = .bottom
-            appearance.window.enableInsideSafeArea = true
-            appearance.animation.style = .plain
-            appearance.animation.duration = CXAnimation.Duration(0.35)
-            appearance.animation.transition = CXAnimation.Transition(in: .up, out: .down)
-        case .alert:
-            appearance.window.width = .fixValue(size: 300)
-            appearance.animation.style = .bounceZoom
-            appearance.animation.duration = CXAnimation.Duration(0.35)
-            appearance.animation.transition = CXAnimation.Transition(.center)
-            appearance.window.allowTouchOutsideToDismiss = false
+            case .actionSheet:
+                appearance.window.width = .fixValue(size: UIScreen.main.bounds.width - 16)
+                appearance.window.position = .bottom
+                appearance.animation.style = .plain
+                appearance.animation.duration = CXAnimation.Duration(0.35)
+                appearance.animation.transition = CXAnimation.Transition(in: .up, out: .down)
+            case .alert:
+                appearance.window.width = .fixValue(size: 247)
+                appearance.animation.style = .bounceZoom
+                appearance.animation.duration = CXAnimation.Duration(0.35)
+                appearance.animation.transition = CXAnimation.Transition(.center)
         }
     }
 }
